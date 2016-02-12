@@ -17,5 +17,17 @@ best <- function(state, outcome){
     # the outcome name does not match 
     stop("invalid outcome")
   }
+  
+  ## if outcome is heart.attack
+  if (outcome == "heart attack") {
+    state_hosp_list <- subset(outcome_data, State==state)
+    min_val <- min(state_hosp_list[,"Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack"])
+    inc_list <- (state_hosp_list[,"Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack"]==min_val)
+    print(paste("inc list:",sum(inc_list)))
+    best_hosp_list <- state_hosp_list[inc_list,]
+    print(best_hosp_list[,"Hospital.Name"])
+    
+    ##best_list <- tapply(outcome_data[,11], outcome_data$State, min)
+  }
 
 }
