@@ -3,7 +3,6 @@ best <- function(state, outcome){
   ## Read outcome data
   outcome_data <- read.csv("outcome-of-care-measures.csv",
                          colClasses="character")
-  print(unique(outcome_data$State))
   
   ## check that state and outcome are valid
   state_list <- unique(outcome_data$State)
@@ -23,21 +22,23 @@ best <- function(state, outcome){
   
   ## based on the outcome, get the list
     state_hosp_list <- subset(outcome_data, State==state)
-    min_val <- min(state_hosp_list[,match_list[outcome]])
-    inc_list <- (state_hosp_list[,match_list[outcome]]==min_val)
-    print(paste("inc list:",sum(inc_list)))
-    best_hosp_list <- state_hosp_list[inc_list,]
-    print(best_hosp_list[,"Hospital.Name"])
+    ## clean up NA
+    state_hosp_list[,match_list[outcome]] <- as.numeric(state_hosp_list[,match_list[outcome]])
+    rank_list <- order(state_hosp_list[,match_list[outcome]], 
+                     state_hosp_list$Hospital.Name,
+                     na.last=NA)
+
+    best_hosp_list <- state_hosp_list[rank_list[1],"Hospital.Name"]
+    
+    best_hosp_list
     
     ##best_list <- tapply(outcome_data[,11], outcome_data$State, min)
-
 }
 
 rankhospital <- function(state, outcome, num="best") {
   ## Read outcome data
   outcome_data <- read.csv("outcome-of-care-measures.csv",
                            colClasses="character")
-  print(unique(outcome_data$State))
   
   ## check that state and outcome are valid
   state_list <- unique(outcome_data$State)
@@ -57,22 +58,27 @@ rankhospital <- function(state, outcome, num="best") {
   
   ## based on the outcome, get the list
   state_hosp_list <- subset(outcome_data, State==state)
-  rank_list <- sort(state_hosp_list[,match_list[outcome]])
   
-  if (num == "best") {
-    inc_list <- rank_list[1,]
-  }
-  else if (num == "worst"){
-    inc_list <- rank_list[nrow(inc_list),]
-  }
-  else if (num > nrow(inc_list)) 
-    stop("number is too large")
-  else {
-    inc_list <- rank_list[number,]
-  }
+  ## convert the character inputs to numeric
+  state_hosp_list[,match_list[outcome]] <- as.numeric(state_hosp_list[,match_list[outcome]])
   
-
-  print(inc_list[,"Hospital.Name"])  
+  rank_list <- order(state_hosp_list[,match_list[outcome]], 
+                     state_hosp_list$Hospital.Name,
+                     na.last=NA)
+  
   ## Return hospital name in that state with the given rank
   ## 30-day death rate
+  num_item <- NROW(rank_list)
+  if (num == "best") {
+    name_list <- state_hosp_list[rank_list[1],"Hospital.Name"]
+  }
+  else if (num == "worst"){
+    name_list <- state_hosp_list[rank_list[num_item],"Hospital.Name"]
+  }
+  else if (num > num_item)
+    name_list <- NA
+  else {
+    name_list <- state_hosp_list[rank_list[num],"Hospital.Name"]
+  }
+  name_list
 }
